@@ -22,7 +22,7 @@ app.listen(PORT, () => {
 db.connect(err => {
     if (err) throw err
     console.log(`
-     -----------------------
+    +-----------------------+
     |   EMPLOYEE MANAGER    |
-     -----------------------`)
+    +-----------------------+`)
     })
