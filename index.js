@@ -30,6 +30,22 @@ const menu = () => {
             case 'View all employees':
                 allEmployees()
                 break
+            case "Add a department":
+                addDepartment()
+                break
+            case "Add a role":
+                addRole()
+                break
+            case "Add an employee":
+                addEmployee()
+                break
+            case "Update an employee role":
+                updateEmployeeRole()
+                break
+            case "Exit":
+                console.log("Goodbye");
+                db.end();
+                break;
         }
     })
 }
@@ -38,11 +54,11 @@ const menu = () => {
 // WHEN I choose to view all departments
 // THEN I am presented with a formatted table showing department names and department ids
 allDepartments = () => {
-    let q = 'SELECT* FROM department';
+    let q = 'SELECT* FROM department'
     db.query(q, (err, rep) => {
-        if (err) throw err;
-        console.log("\n");
-        console.table('DEPARTMENTS', rep);
+        if (err) throw err
+        console.log("\n")
+        console.table('DEPARTMENTS', rep)
         menu()
 })}
 
@@ -55,9 +71,9 @@ allRoles = () => {
                 LEFT JOIN department AS d ON (d.id = r.department_id)
                 ORDER BY r.id;`
     db.query(q, (err, rep) => {
-        if (err) throw err;
-        console.log("\n");
-        console.table('ROLES', rep);
+        if (err) throw err
+        console.log("\n")
+        console.table('ROLES', rep)
         menu()
 })}
 
@@ -73,24 +89,134 @@ allEmployees = () => {
                 INNER JOIN department AS d ON (d.id = r.department_id)
                 ORDER BY e.id;`
     db.query(q, (err, rep) => {
-        if (err) throw err;
-        console.log("\n");
-        console.table('EMPLOYEES', rep);
+        if (err) throw err
+        console.log("\n")
+        console.table('EMPLOYEES', rep)
         menu()
 })}
 
 
 // WHEN I choose to add a department
 // THEN I am prompted to enter the name of the department and that department is added to the database
+addDepartment = () => {
+    inquirer
+        .prompt({
+            type: 'input',
+            message: 'Enter a department name:',
+            name: 'new_department',
+        }).then((input) => {
+            let q = `INSERT INTO department SET ?;`
+            db.query(q, {name: input.new_department},
+                (err) => {
+                if (err) throw err
+                })
+            console.table('\nDepartment "'+ JSON.stringify(input.new_department) +'" has been added.\n')
+            menu()
+})}
+
+
+
 
 // WHEN I choose to add a role
 // THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
+addRole = () => {
+    inquirer
+        .prompt([
+            {
+                type: 'input',
+                message: 'Enter a role title:',
+                name: 'new_role'
+            },
+            {
+                type: 'number',
+                message: 'Salary:',
+                name: 'new_salary',
+            } 
+        ]).then(input => {
+            const params = [input.new_role, input.new_salary]
+            let q = `SELECT name, id FROM department;`
+            db.query(q, (err, data) => {
+                if (err) throw err
+                const listOfDepartments = data.map(({ name, id }) => ({ name: name, value: id }))
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'new_department',
+                        message: 'Choose a department for the '+ input.new_role +' role:',
+                        choices: listOfDepartments
+                    }
+                ]).then(selectedDpt => {
+                        const department = selectedDpt.new_department
+                        params.push(department)
+                        console.log(params)
+                        let q = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?);`
+                        db.query(q, params, (err) => {
+                            if (err) throw err
+                            console.log('\nNew role ' + JSON.stringify(input.new_role) + ' has been added.\n')
+                            menu()
+                    })})
+        })})
+}
+
+
 
 // WHEN I choose to add an employee
 // THEN I am prompted to enter the employee’s first name, last name, role, and manager and that employee is added to the database
+addEmployee = () => {
+    db.query(`SELECT * FROM role;`, (err, record) => {
+        if (err) throw err
+        const roles = record.map((role) => ({
+            value: role.id,
+            name: role.title,
+        }))
+        db.query(`SELECT * FROM employee;`, (err, record) => {
+            if (err) throw err
+            const managers = record.map((employee) => ({
+                value: employee.id,
+                name: employee.first_name + ' ' + employee.last_name 
+            }))
+            managers.push({ name: "None", value: null })
+
+            inquirer
+                .prompt([
+                    {
+                        type: 'input',
+                        message: 'Enter employee first name:',
+                        name: 'first_name'
+                    },
+                    {
+                        type: 'input',
+                        message: 'Enter employee last name:',
+                        name: 'last_name'
+                    },
+                    {
+                        type: 'list',
+                        message: 'Select employee role:',
+                        name: 'role_id',
+                        choices: roles
+                    },
+                    {
+                        type: 'list',
+                        message: 'Select employee manager:',
+                        name: 'manager_id',
+                        choices: managers
+                    }
+                ]).then(function (input) {
+                    db.query(`INSERT INTO employee SET ?;`, input,(err) => {
+                            if (err) {throw err}
+                            console.log('\nEmployee ' + input.first_name + " " + input.last_name + 'has been added.\n')
+                            menu()
+                    })})
+        })
+})}
+
+
 
 // WHEN I choose to update an employee role
 // THEN I am prompted to select an employee to update and their new role and this information is updated in the database 
+
+
+
 
 
 module.exports = { menu }
