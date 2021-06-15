@@ -5,8 +5,6 @@ const db = mysql.createConnection({
     user: 'root',
     password: 'rootpass',
     database: 'employee_tracker'
-},
-console.log('Connected to the database.')
-)
+})
 
 module.exports = db
