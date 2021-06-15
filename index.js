@@ -16,7 +16,8 @@ const menu = () => {
                 'Add a department',
                 'Add a role',
                 'Add an employee',
-                'Update an employee role'
+                'Update an employee role',
+                'Exit'
             ]
         }
     ]).then(({ menuList }) => {
@@ -43,7 +44,7 @@ const menu = () => {
                 updateEmployeeRole()
                 break
             case 'Exit':
-                console.log('Goodbye!')
+                console.log('\nGoodbye!\n')
                 db.end()
                 break
         }
@@ -110,7 +111,7 @@ addDepartment = () => {
                 (err) => {
                 if (err) throw err
                 })
-            console.table('\nDepartment "'+ JSON.stringify(input.new_department) +'" has been added.\n')
+            console.table('\nDepartment '+ JSON.stringify(input.new_department) +' has been added.\n')
             menu()
 })}
 
