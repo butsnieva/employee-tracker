@@ -30,22 +30,22 @@ const menu = () => {
             case 'View all employees':
                 allEmployees()
                 break
-            case "Add a department":
+            case 'Add a department':
                 addDepartment()
                 break
-            case "Add a role":
+            case 'Add a role':
                 addRole()
                 break
-            case "Add an employee":
+            case 'Add an employee':
                 addEmployee()
                 break
-            case "Update an employee role":
+            case 'Update an employee role':
                 updateEmployeeRole()
                 break
-            case "Exit":
-                console.log("Goodbye");
-                db.end();
-                break;
+            case 'Exit':
+                console.log('Goodbye!')
+                db.end()
+                break
         }
     })
 }
@@ -214,8 +214,41 @@ addEmployee = () => {
 
 // WHEN I choose to update an employee role
 // THEN I am prompted to select an employee to update and their new role and this information is updated in the database 
-
-
+updateEmployeeRole = () => {
+    db.query(`SELECT * FROM employee;`, (err, record) => {
+        if (err) throw err
+        const employees = record.map((employee) => ({
+            value: employee.id,
+            name: employee.first_name + ' ' + employee.last_name
+        }))
+        db.query(`SELECT * FROM role;`, (err, record) => {
+            if (err) throw err
+            const roles = record.map((role) => ({
+                value: role.id,
+                name: role.title
+            }))
+            inquirer
+                .prompt([
+                    {
+                        type: 'list',
+                        message: 'Which employee do you want to update?',
+                        name: 'id',
+                        choices: employees
+                    },
+                    {
+                        type: 'list',
+                        message: "Choose employee's new role:",
+                        name: 'role_id',
+                        choices: roles
+                    }
+                ]).then((input) => {
+                    db.query(`UPDATE employee SET role_id = ? WHERE id = ?;`, [input.role_id, input.id],(err) => {
+                            if (err) throw err
+                            console.log('\nEmployee role updated.\n')
+                            menu()
+                        })
+        })})
+})}
 
 
 
